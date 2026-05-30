@@ -51,7 +51,8 @@ Xây dựng mô hình **phân loại (classification)** để dự đoán khả 
 ### 🔍 Insight Chính
 
 - 🏆 **Điểm CIBIL** (`cibil_score`) là yếu tố quyết định áp đảo với **91.32%** tầm quan trọng
-- ❌ **Trình độ học vấn** và **Tình trạng tự kinh doanh** **KHÔNG** có ảnh hưởng thống kê đến kết quả phê duyệt
+- ❌ **Trình độ học vấn** và **Tình trạng tự kinh doanh** **KHÔNG** có ảnh hưởng thống kê đến kết quả phê duyệt (xác nhận bởi Chi-Square & ANOVA)
+- ❌ **Trình độ học vấn** cũng **KHÔNG** ảnh hưởng đến số tiền vay (ANOVA: p = 0.487)
 - 📈 Mô hình Random Forest sau tuning đã giải quyết hoàn toàn vấn đề overfitting
 
 ---
@@ -404,13 +405,40 @@ Giai đoạn 2: Tối ưu hóa
 
 > **Kết luận thống kê:** Với p-value >> 0.05 ở cả hai phép kiểm định, chúng ta **không thể bác bỏ giả thuyết H₀** — không có bằng chứng cho thấy `education` hay `self_employed` ảnh hưởng đến `loan_status`. Kết quả này **hoàn toàn nhất quán** với phân tích Feature Importance ở trên.
 
-### 8.2. So Sánh Các Phát Hiện
+### 8.2. ANOVA (Phân Tích Phương Sai)
 
-| Phương Pháp | Education | Self-Employed |
-|-------------|:---------:|:-------------:|
-| Feature Importance (RF) | ~0.00% | 0.04% |
-| Chi-Square Test | p = 0.772 | p = 1.000 |
-| **Kết luận chung** | **Không ảnh hưởng** | **Không ảnh hưởng** |
+#### Education vs Loan Amount
+
+| Chỉ số | Giá trị |
+|--------|:-------:|
+| F-statistic | 0.4823 |
+| **p-value** | **0.487** |
+| Kết luận | ❌ **Không có sự khác biệt** |
+
+<img src="reports/images/anova/education_vs_loan_amount.png" alt="Education vs Loan Amount ANOVA" width="500">
+
+> **Kết luận thống kê:** Với p-value = 0.487 >> 0.05, **không có bằng chứng thống kê** để kết luận rằng trình độ học vấn ảnh hưởng đến số tiền vay. Số tiền vay trung bình giữa nhóm Graduate và Not Graduate là tương đương nhau.
+
+#### Loan Status vs Loan Amount
+
+| Chỉ số | Giá trị |
+|--------|:-------:|
+| F-statistic | 1.113 |
+| **p-value** | **0.291** |
+| Kết luận | ❌ **Không có sự khác biệt** |
+
+<img src="reports/images/anova/loan_status_vs_loan_amount.png" alt="Loan Status vs Loan Amount ANOVA" width="500">
+
+> **Kết luận thống kê:** Với p-value = 0.291 > 0.05, **không có sự khác biệt có ý nghĩa thống kê** về số tiền vay giữa nhóm được phê duyệt và bị từ chối. Số tiền vay không phải yếu tố quyết định — `cibil_score` mới là yếu tố chi phối.
+
+### 8.3. So Sánh Các Phát Hiện
+
+| Phương Pháp | Education | Self-Employed | Education → Loan Amount | Loan Status → Loan Amount |
+|-------------|:---------:|:-------------:|:-----------------------:|:-------------------------:|
+| Feature Importance (RF) | ~0.00% | 0.04% | — | — |
+| Chi-Square Test | p = 0.772 | p = 1.000 | — | — |
+| ANOVA (F-test) | — | — | p = 0.487 | p = 0.291 |
+| **Kết luận chung** | **Không ảnh hưởng** | **Không ảnh hưởng** | **Không ảnh hưởng** | **Không ảnh hưởng** |
 
 ---
 
@@ -420,7 +448,7 @@ Giai đoạn 2: Tối ưu hóa
 
 1. **Mô hình tối ưu:** Random Forest Tuned đạt **Accuracy 97.42%** và **ROC AUC 0.9984** — khả năng dự đoán gần như hoàn hảo.
 2. **Yếu tố quyết định:** `cibil_score` (điểm tín dụng) chiếm **91.32%** tầm quan trọng, là yếu tố áp đảo trong quyết định phê duyệt khoản vay.
-3. **Yếu tố không ảnh hưởng:** Trình độ học vấn và tình trạng tự kinh doanh **KHÔNG** có ý nghĩa thống kê — được xác nhận bởi cả Feature Importance và Chi-Square test.
+3. **Yếu tố không ảnh hưởng:** Trình độ học vấn, tình trạng tự kinh doanh và **trạng thái phê duyệt** **KHÔNG** có ý nghĩa thống kê với số tiền vay — được xác nhận bởi Feature Importance, Chi-Square test và ANOVA (Education → Loan Amount: p = 0.487; Loan Status → Loan Amount: p = 0.291).
 4. **Overfitting được kiểm soát:** Sau khi loại bỏ 5 đặc trưng data leakage và tinh chỉnh hyperparameter, chênh lệch train/test chỉ còn **0.10%**.
 
 ### 💡 Khuyến Nghị Kinh Doanh
@@ -480,6 +508,7 @@ code .
 | 5 | `05_hyperparameter_tuning.ipynb` | Tối ưu hóa siêu tham số |
 | 6 | `06_pearson.ipynb` | Phân tích tương quan Pearson |
 | 7 | `07_chi_square.ipynb` | Kiểm định Chi-Square |
+| 8 | `08_anova.ipynb` | Phân tích phương sai (ANOVA) |
 
 ---
 
@@ -493,7 +522,7 @@ Loan_Approval_Classification_Dataset/
 │   ├── process/                   # Dữ liệu đã làm sạch
 │   └── external/                  # Dữ liệu bên ngoài
 │
-├── notebooks/                     # 7 Jupyter Notebooks
+├── notebooks/                     # 8 Jupyter Notebooks
 │   ├── 01_infomation_data.ipynb
 │   ├── 02_eda.ipynb
 │   ├── 03_feature_engineering.ipynb
@@ -501,6 +530,7 @@ Loan_Approval_Classification_Dataset/
 │   ├── 05_hyperparameter_tuning.ipynb
 │   ├── 06_pearson.ipynb
 │   ├── 07_chi_square.ipynb
+│   ├── 08_anova.ipynb
 │   └── codebook.md
 │
 ├── models/                        # Mô hình đã huấn luyện
@@ -515,6 +545,7 @@ Loan_Approval_Classification_Dataset/
 │   │   ├── feature_engineering/
 │   │   ├── pearson/
 │   │   ├── chi_square/
+│   │   ├── anova/
 │   │   └── train_models/
 │   ├── dashboard/                 # Power BI Dashboard
 │   │   └── loan-approval.pbix
